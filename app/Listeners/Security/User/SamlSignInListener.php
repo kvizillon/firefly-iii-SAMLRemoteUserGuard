@@ -56,6 +56,14 @@ class SamlSignedInListener
                 throw new AccessDeniedHttpException('SAML response did not contain email address.');
             }
 
+            // Sanitize and validate email to prevent injection attacks
+            $email = $this->sanitizeAndValidateEmail($email);
+            
+            if (!$email) {
+                Log::error('SamlSignedInListener: Invalid email format after sanitization');
+                throw new AccessDeniedHttpException('Invalid email format in SAML response.');
+            }
+
             // Validate email domain if restrictions are configured
             $this->validateEmailDomain($email);
 
@@ -223,37 +231,106 @@ class SamlSignedInListener
     }
 
     /**
+     * Sanitize and validate email address to prevent injection attacks.
+     *
+     * @param string $email
+     * @return string|false Validated email or false if invalid
+     */
+    private function sanitizeAndValidateEmail(string $email): string|false
+    {
+        // Trim whitespace and convert to lowercase
+        $email = trim(strtolower($email));
+        
+        // Remove any non-printable characters
+        $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+        
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('SamlSignedInListener: Email validation failed', [
+                'original' => $email,
+                'sanitized' => $email
+            ]);
+            return false;
+        }
+        
+        // Additional security: reject suspicious patterns
+        $suspiciousPatterns = [
+                    '/[\x00-\x08\x0B\x0C\x0E-\x1F]/', // Control characters
+                    '/[;\\$\'"]/',                     // Common injection characters
+                    '/\s{2,}/',                        // Multiple spaces
+                    '/^\s+|\s+$/',                     // Leading/trailing spaces
+        ];
+        
+        foreach ($suspiciousPatterns as $pattern) {
+            if (preg_match($pattern, $email)) {
+                Log::warning('SamlSignedInListener: Suspicious pattern detected in email', [
+                    'email' => $email,
+                    'pattern' => $pattern
+                ]);
+                return false;
+            }
+        }
+        
+        // Limit email length (RFC 5321 allows up to 256 characters for the whole email)
+        if (strlen($email) > 254) {
+            Log::warning('SamlSignedInListener: Email exceeds maximum length', [
+                'email' => $email,
+                'length' => strlen($email)
+            ]);
+            return false;
+        }
+        
+        // Validate local part and domain separately
+        if (!preg_match('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', $email)) {
+            Log::warning('SamlSignedInListener: Email format validation failed (regex)', [
+                'email' => $email
+            ]);
+            return false;
+        }
+        
+        return $email;
+    }
+
+    /**
      * Validate that the email domain is allowed.
      *
-     * If the configuration 'saml-guard.allowed_domains' is not empty, the email's domain
-     * must be present in that list. Otherwise, any domain is permitted.
-     *
-     * @param string $email The email address to validate.
+     * @param string $email
      * @return void
-     * @throws AccessDeniedHttpException If the domain is not allowed.
+     * @throws AccessDeniedHttpException
      */
     private function validateEmailDomain(string $email): void
     {
         $allowedDomains = config('saml-guard.allowed_domains', []);
-
+        
         if (empty($allowedDomains)) {
             return;
         }
-
-        $domain = substr(strrchr($email, "@"), 1);
-
+        
+        // Extract domain safely
+        $parts = explode('@', $email);
+        $domain = end($parts);
+        
+        // Validate domain doesn't contain injection attempts
+        if (preg_match('/[;\'"\\\\\s]/', $domain)) {
+            Log::warning('SamlSignedInListener: Suspicious domain detected', [
+                'domain' => $domain,
+                'email' => $email
+            ]);
+            throw new AccessDeniedHttpException('Invalid email domain format.');
+        }
+        
         if (!in_array($domain, $allowedDomains)) {
             Log::warning('SamlSignedInListener: User from disallowed domain attempted login', [
-                'email'          => $email,
-                'domain'         => $domain,
+                'email' => $email,
+                'domain' => $domain,
                 'allowed_domains' => $allowedDomains
             ]);
-
+            
             throw new AccessDeniedHttpException(
                 "Login from domain '{$domain}' is not allowed. Please use an approved email domain."
             );
         }
-
+        
         Log::debug('SamlSignedInListener: Email domain validated', ['domain' => $domain]);
     }
 
