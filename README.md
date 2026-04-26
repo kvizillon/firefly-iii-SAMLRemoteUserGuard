@@ -5,6 +5,8 @@
 
 This package provides **SAML 2.0 authentication** for [Firefly III](https://www.firefly-iii.org/) using the [`scaler-tech/laravel-saml2`](https://github.com/scaler-tech/laravel-saml2) package. It replaces the default `RemoteUserGuard` with a SAML‑aware guard that allows you to use external Identity Providers (including Authentik, Keycloak, SimpleSAMLphp, Azure AD, etc.) for passwordless authentication, passkeys, MFA, and any other auth methods your IdP supports.
 
+This solution doesn't require modifying Firefly III core — it's a drop-in replacement that uses the existing authentication architecture.
+
 > **Tested with** – [SimpleSAMLphp](https://github.com/simplesamlphp/simplesamlphp) as the Identity Provider.
 
 ---
