@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PHP Version](https://img.shields.io/badge/PHP-^8.1-blue.svg)](https://www.php.net/)
 
-This package provides **SAML 2.0 authentication** for [Firefly III](https://www.firefly-iii.org/) using the [`scaler-tech/laravel-saml2`](https://github.com/scaler-tech/laravel-saml2) package. It replaces the default `RemoteUserGuard` with a SAML‑aware guard that redirects unauthenticated users to an Identity Provider (IdP), automatically creates local users (optional), and supports secure session handling with signed tokens.
+This package provides **SAML 2.0 authentication** for [Firefly III](https://www.firefly-iii.org/) using the [`scaler-tech/laravel-saml2`](https://github.com/scaler-tech/laravel-saml2) package. It replaces the default `RemoteUserGuard` with a SAML‑aware guard that allows you to use external Identity Providers (including Authentik, Keycloak, SimpleSAMLphp, Azure AD, etc.) for passwordless authentication, passkeys, MFA, and any other auth methods your IdP supports.
 
 > **Tested with** – [SimpleSAMLphp](https://github.com/simplesamlphp/simplesamlphp) as the Identity Provider.
 
@@ -28,15 +28,10 @@ This package provides **SAML 2.0 authentication** for [Firefly III](https://www.
 
 ## Features
 
-- **Full SAML 2.0 support** – based on `scaler-tech/laravel-saml2`.
+- **SAML 2.0 support** – based on `scaler-tech/laravel-saml2`.
 - **Seamless user provisioning** – automatically creates local users from SAML attributes (can be disabled).
-- **Flexible attribute mapping** – map any SAML attribute to Firefly III user fields (email, name, etc.).
+- **Prevent user auto-creation** - restrict access to only pre-existing accounts
 - **Domain restriction** – limit authentication to specific email domains (whitelist). Users with non‑allowed domains are blocked.
-- **Prevent auto‑creation** – you can disable automatic user creation and only allow pre‑existing accounts.
-- **Secure session handling** – uses HMAC‑signed user tokens to prevent ID tampering.
-- **API‑friendly** – automatically skips SAML redirection for API routes (uses token authentication).
-- **Intended URL restoration** – after login, users are sent back to the page they originally requested.
-- **Multi‑tenant support** – works with multiple SAML tenants (for advanced setups).
 
 ---
 
@@ -47,9 +42,8 @@ This guard extends the native `RemoteUserGuard` and activates when `AUTHENTICATI
 1. Extracts user data using the configured attribute mapping.
 2. Finds or creates the local Firefly III user (auto‑creation can be disabled).
 3. Enforces domain whitelisting (if configured).
-4. Creates the required group membership (as the original `RemoteUserProvider` does).
-5. Logs the user in via the `remote_user_guard`.
-6. Restores the originally requested URL.
+4. Logs the user in via the `remote_user_guard`.
+5. Restores the originally requested URL.
 
 ---
 
@@ -90,8 +84,9 @@ Copy the following files into your Firefly III project:
 #### 5. Update `config/auth.php`
 
 Add the `guard_type` line after the existing `guard_email` setting:
-
     'guard_email'      => env('AUTHENTICATION_GUARD_EMAIL'),
+    
+    //ADD:
     'guard_type'       => envDefaultWhenEmpty(env('AUTHENTICATION_GUARD_TYPE'), 'remote_user'),
 
 Then replace the `remote_user_guard` definition:
@@ -158,6 +153,13 @@ Run the artisan command to create your IdP tenant. Example for a generic IdP:
         --x509cert="YOUR_X509_CERTIFICATE_HERE"
 
 > Replace the URLs and certificate with those provided by your Identity Provider.
+
+You can add multiple tenants, but SAMLRemoteUserGuard will use only one. By default, it uses the tenant with key name 'default' (if there's only one tenant, the key name doesn't matter).
+
+To use a tenant with a key other than 'default', set the active tenant in config/saml2.php by adding 'active_tenant' => 'your_tenant_key'.
+**Example:**
+php
+'active_tenant' => 'my_custom_tenant',
 
 #### 10. Exclude SAML routes from CSRF protection
 
