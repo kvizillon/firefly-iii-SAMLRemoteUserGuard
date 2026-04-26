@@ -159,7 +159,8 @@ You can add multiple tenants, but SAMLRemoteUserGuard will use only one. By defa
 To use a tenant with a key other than 'default', set the active tenant in config/saml2.php by adding 'active_tenant' => 'your_tenant_key'.
 
 **Example:**
-php 'active_tenant' => 'my_custom_tenant',
+
+    'active_tenant' => 'my_custom_tenant',
 
 #### 10. Exclude SAML routes from CSRF protection
 
