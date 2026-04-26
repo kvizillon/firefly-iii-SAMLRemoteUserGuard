@@ -157,9 +157,9 @@ Run the artisan command to create your IdP tenant. Example for a generic IdP:
 You can add multiple tenants, but SAMLRemoteUserGuard will use only one. By default, it uses the tenant with key name 'default' (if there's only one tenant, the key name doesn't matter).
 
 To use a tenant with a key other than 'default', set the active tenant in config/saml2.php by adding 'active_tenant' => 'your_tenant_key'.
+
 **Example:**
-php
-'active_tenant' => 'my_custom_tenant',
+php 'active_tenant' => 'my_custom_tenant',
 
 #### 10. Exclude SAML routes from CSRF protection
 
