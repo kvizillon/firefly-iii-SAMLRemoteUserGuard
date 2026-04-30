@@ -233,7 +233,7 @@ The guard triggers only when `AUTHENTICATION_GUARD_TYPE=saml` is set. Otherwise,
        SESSION_LIFETIME=120
 
 3. **Verify the IdP certificate** – The `x509cert` used in the tenant must be the **public certificate** of your IdP (without `-----BEGIN CERTIFICATE-----` line breaks). Usually it’s a single line string.
-4. **Test the flow** – After deployment, try accessing a protected page (e.g., `//profile`). You should be redirected to your IdP, then back to the original page after login.
+4. **Test the flow** – After deployment, try accessing a protected page (e.g., `https://your-domain.com/profile`). You should be redirected to your IdP, then back to the original page after login.
 
 ---
 
