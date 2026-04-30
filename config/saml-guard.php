@@ -68,5 +68,5 @@ return [
     | Set to the key of the desired tenant.
     |
     */
-    'active_tenant' => env('SAML2_ACTIVE_TENANT', 'default'),
+    'active_tenant' => env('SAML_ACTIVE_TENANT', 'default'),
 ];
