@@ -136,6 +136,9 @@ Add or modify the following variables:
     # Whether to automatically create users if they don't exist
     SAML_AUTO_CREATE_USERS=false
 
+    # Specify which tenant to use when multiple tenants exist.
+    SAML2_ACTIVE_TENANT=default
+
 #### 8. Modify `config/saml2.php`
 
 Add the `'routesMiddleware'` key (if not already present) and set it to `['web']`:
@@ -156,13 +159,7 @@ Run the artisan command to create your IdP tenant. Example for a generic IdP:
 
 > Replace the URLs and certificate with those provided by your Identity Provider.
 
-You can add multiple tenants, but SAMLRemoteUserGuard will use only one. By default, it uses the tenant with key name 'default' (if there's only one tenant, the key name doesn't matter).
-
-To use a tenant with a key other than 'default', set the active tenant in config/saml2.php by adding 'active_tenant' => 'your_tenant_key'.
-
-**Example:**
-
-    'active_tenant' => 'my_custom_tenant',
+You can add multiple tenants, but SAMLRemoteUserGuard will use only one. By default, it uses the tenant with key name 'default'.
 
 #### 10. Exclude SAML routes from CSRF protection
 
@@ -210,6 +207,7 @@ The `config/saml-guard.php` file contains the main settings for the SAML guard.
 | `auto_create_users` | If `true`, creates a local user when a SAML‑authenticated user does not exist. If `false`, only pre‑existing users can log in. |
 | `attribute_mapping` | Maps SAML attributes to Firefly III user fields. The key is the user field, the value is a single attribute name or an array of possible names (tried in order). |
 | `allowed_domains` | Restricts authentication to specific email domains. Users with an email from a non‑listed domain are denied access. Leave empty to allow all domains. |
+| `active_tenant` | Specify which tenant to use when multiple tenants exist. |
 
 ### Authentication
 
