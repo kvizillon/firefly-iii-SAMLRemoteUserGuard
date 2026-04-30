@@ -201,7 +201,7 @@ The `config/saml-guard.php` file contains the main settings for the SAML guard.
             ? array_map('trim', explode(',', env('SAML_ALLOWED_DOMAINS'))) 
             : [],
 
-        'active_tenant' => env('SAML2_ACTIVE_TENANT', 'default'),
+        'active_tenant' => env('SAML_ACTIVE_TENANT', 'default'),
     ];
 
 | Key | Description |
