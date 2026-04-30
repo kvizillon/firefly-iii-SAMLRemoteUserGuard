@@ -58,4 +58,15 @@ return [
     'allowed_domains' => env('SAML_ALLOWED_DOMAINS')
         ? array_map('trim', explode(',', env('SAML_ALLOWED_DOMAINS')))
         : [],
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Active Tenant
+    |--------------------------------------------------------------------------
+    |
+    | Specify which tenant to use when multiple tenants exist.
+    | Set to the key of the desired tenant.
+    |
+    */
+    'active_tenant' => env('SAML2_ACTIVE_TENANT', 'default'),
 ];
