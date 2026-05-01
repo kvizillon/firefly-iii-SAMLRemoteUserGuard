@@ -125,9 +125,17 @@ class SamlSignedInListener
                         'email' => $email
                     ]);
 
+                    // Set a flag in session that this user is invalid
+                    // SAMLRemoteUserGuard will detect this and perform IdP logout on next request
+                    session()->put('saml_invalid_user', [
+                        'email' => $email,
+                        'timestamp' => time()
+                    ]);
+
                     throw new AccessDeniedHttpException(
                         'User with email ' . $email . ' not found in the system. Please contact your administrator.'
                     );
+
                 }
             } else {
                 Log::debug('SamlSignedInListener: Existing user found', [
