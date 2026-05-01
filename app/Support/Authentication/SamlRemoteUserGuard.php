@@ -92,6 +92,10 @@ class SamlRemoteUserGuard extends RemoteUserGuard
                 return;
             }
 
+            if ($this->handleInvalidUserFlag()) {
+                return;
+            }
+
             Log::debug(sprintf('SAML mode: Now at %s', __METHOD__));
 
             if ($this->user instanceof User) {
@@ -521,5 +525,32 @@ class SamlRemoteUserGuard extends RemoteUserGuard
         }
 
         return false;
+    }
+
+    /**
+     * Check if there's an invalid user flag in session and perform logout if needed.
+     *
+     * @return bool True if invalid user was detected and logout was triggered
+     */
+    private function handleInvalidUserFlag(): bool
+    {
+        if (!session()->has('saml_invalid_user')) {
+            return false;
+        }
+        
+        $invalidUser = session()->get('saml_invalid_user');
+        
+        // Clear the flag to prevent loops
+        session()->forget('saml_invalid_user');
+        
+        Log::info('SAML mode: Invalid user detected, initiating IdP logout', [
+            'email' => $invalidUser['email'] ?? 'unknown',
+            'timestamp' => $invalidUser['timestamp'] ?? 'unknown'
+        ]);
+        
+        // Perform IdP logout
+        $this->logout();
+        
+        return true; // logout() will exit, so this line is never reached
     }
 }
