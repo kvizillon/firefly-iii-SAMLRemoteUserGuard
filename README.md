@@ -159,7 +159,7 @@ Run the artisan command to create your IdP tenant. Example for a generic IdP:
 
 > Replace the URLs and certificate with those provided by your Identity Provider.
 
-You can add multiple tenants, but SAMLRemoteUserGuard will use only one. By default, it uses the tenant with key name 'default'.
+You can add multiple tenants, but SAMLRemoteUserGuard will use only one. By default, it uses the tenant with key name 'default'. You can set which tenant to use via SAML2_ACTIVE_TENANT in .env.
 
 #### 10. Exclude SAML routes from CSRF protection
 
